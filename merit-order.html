@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MERIT ORDER — Centennial Power Pool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#06090d; --panel:#0b1218; --panel2:#0e161e; --line:#1a2833; --line2:#233543;
+  --ink:#d9e6ee; --dim:#7e93a1; --faint:#48586369;
+  --cyan:#5fe0ff; --amber:#ffb454; --red:#ff5d68; --green:#54e6a4; --violet:#b892ff;
+  --f-nuclear:#b892ff; --f-coal:#c97a54; --f-hydro:#4fb8ff; --f-gas:#ffb454;
+  --f-peaker:#ff8a3d; --f-import:#8fa3b0; --f-wind:#54e6a4; --f-solar:#ffd94a; --f-battery:#ff6ad5;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:'Saira Condensed','Arial Narrow',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:13px}
+body{
+  background-image:
+    linear-gradient(rgba(95,224,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(95,224,255,.022) 1px,transparent 1px);
+  background-size:36px 36px;
+  min-height:100vh;
+}
+::selection{background:#5fe0ff33}
+
+/* ---------- header ---------- */
+header{
+  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
+  padding:16px 22px 12px;border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:baseline;gap:14px}
+h1{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:.14em;line-height:1;color:var(--ink)}
+h1 em{font-style:normal;color:var(--cyan)}
+.ba{font-size:11px;color:var(--dim);letter-spacing:.18em}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--green);letter-spacing:.2em}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.hspacer{flex:1}
+.clock{font-size:15px;color:var(--ink);letter-spacing:.08em;font-weight:600;min-width:120px;text-align:right}
+.speeds{display:flex;gap:4px}
+.sbtn{
+  font-family:var(--mono);font-size:11px;color:var(--dim);background:var(--panel);
+  border:1px solid var(--line);padding:5px 10px;cursor:pointer;letter-spacing:.05em;
+}
+.sbtn:hover{color:var(--ink);border-color:var(--line2)}
+.sbtn.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan);font-weight:600}
+
+/* ---------- layout ---------- */
+.wrap{display:grid;grid-template-columns:300px 1fr 268px;gap:14px;padding:14px 22px 8px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line)}
+.ptitle{
+  font-size:10px;letter-spacing:.22em;color:var(--dim);padding:9px 12px 8px;
+  border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;
+}
+.ptitle span.r{color:var(--faint);letter-spacing:.05em}
+
+/* ---------- left column ---------- */
+.col-l{display:flex;flex-direction:column;gap:14px}
+.smp{padding:14px 14px 12px;position:relative;overflow:hidden}
+.smp .lbl{font-size:10px;letter-spacing:.22em;color:var(--dim)}
+.smp .big{
+  font-size:52px;font-weight:600;line-height:1.05;margin-top:4px;letter-spacing:-.01em;
+  color:var(--cyan);text-shadow:0 0 22px rgba(95,224,255,.35);
+  font-variant-numeric:tabular-nums;transition:color .3s;
+}
+.smp .big.warn{color:var(--amber);text-shadow:0 0 22px rgba(255,180,84,.4)}
+.smp .big.alarm{color:var(--red);text-shadow:0 0 26px rgba(255,93,104,.5)}
+.smp .big.neg{color:var(--violet);text-shadow:0 0 22px rgba(184,146,255,.4)}
+.smp .unit{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.1em}
+.smp .marg{margin-top:8px;font-size:11px;color:var(--dim)}
+.smp .marg b{color:var(--ink);font-weight:500}
+.scarcity-tag{
+  display:none;position:absolute;top:12px;right:12px;font-size:9px;letter-spacing:.18em;
+  color:var(--red);border:1px solid var(--red);padding:3px 7px;animation:blink 1s infinite;
+}
+.scarcity-tag.show{display:block}
+
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.chip{background:var(--panel);padding:9px 12px}
+.chip .k{font-size:9px;letter-spacing:.18em;color:var(--dim)}
+.chip .v{font-size:16px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.chip .v small{font-size:10px;color:var(--dim);font-weight:400}
+
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+.ebtn{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink);
+  background:var(--panel2);border:1px solid var(--line2);padding:9px 6px;cursor:pointer;text-align:center;
+}
+.ebtn:hover{border-color:var(--cyan);color:var(--cyan)}
+.ebtn.active{border-color:var(--amber);color:var(--amber);background:#ffb45414}
+.ebtn.trip:hover{border-color:var(--red);color:var(--red)}
+.ebtn .sub{display:block;font-size:8.5px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
+.ebtn.active .sub{color:var(--amber)}
+.ebtn:disabled{opacity:.35;cursor:default}
+.ebtn:disabled:hover{border-color:var(--line2);color:var(--ink)}
+
+.sliderbox{padding:12px 14px}
+.sliderbox .row{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:8px}
+.sliderbox .row b{color:var(--amber);font-weight:600;font-size:13px}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:3px;background:var(--line2);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:13px;height:13px;background:var(--amber);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--amber)}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;background:var(--amber);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--amber);border-radius:0}
+.crossover{font-size:9.5px;color:var(--faint);margin-top:8px;letter-spacing:.03em}
+.crossover.hot{color:var(--amber)}
+
+.log{height:238px;overflow-y:auto;padding:8px 12px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.log::-webkit-scrollbar{width:5px}
+.log::-webkit-scrollbar-thumb{background:var(--line2)}
+.log .e{font-size:10.5px;line-height:1.5;padding:3px 0;border-bottom:1px dotted #16232d;color:var(--dim)}
+.log .e .t{color:var(--faint);margin-right:6px}
+.log .e.warn{color:var(--amber)}
+.log .e.alarm{color:var(--red)}
+.log .e.good{color:var(--green)}
+.log .e.info{color:var(--ink)}
+
+/* ---------- center charts ---------- */
+.col-c{display:flex;flex-direction:column;gap:14px;min-width:0}
+.chart{position:relative}
+.chart .cbox{position:relative;width:100%}
+canvas{display:block;width:100%}
+#cvStack{height:236px}
+#cvPrice{height:150px}
+#cvMix{height:196px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;border-top:1px solid var(--line)}
+.legend .li{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim)}
+.legend .li i{width:9px;height:9px;display:inline-block}
+
+/* ---------- fleet ---------- */
+.col-r{display:flex;flex-direction:column;gap:14px}
+.fleet{padding:6px 0}
+.urow{padding:8px 12px;border-bottom:1px solid #14202a;cursor:pointer;position:relative}
+.urow:last-child{border-bottom:none}
+.urow:hover{background:#5fe0ff08}
+.urow.noclick{cursor:default}
+.urow .top{display:flex;align-items:center;gap:7px}
+.urow .dot{width:7px;height:7px;flex:none}
+.urow .nm{font-size:11px;color:var(--ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.urow .mc{margin-left:auto;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.urow .barbox{height:5px;background:#121e27;margin-top:6px;position:relative}
+.urow .bar{height:100%;width:0%;transition:width .35s ease}
+.urow .meta{display:flex;justify-content:space-between;font-size:9px;color:var(--faint);margin-top:4px;letter-spacing:.04em}
+.urow .st{font-weight:600;letter-spacing:.12em}
+.urow.out{opacity:.92}
+.urow.out .st{color:var(--red);animation:blink 1.2s infinite}
+.urow.out .bar{background:var(--red) !important}
+.urow.starting .st{color:var(--amber)}
+.urow.retired{opacity:.42}
+.urow.retired .st{color:var(--faint)}
+.urow .tipline{font-size:8.5px;color:var(--faint);margin-top:2px;display:none}
+.urow:hover .tipline{display:block}
+
+/* ---------- footer ---------- */
+.footstats{
+  display:flex;gap:26px;flex-wrap:wrap;padding:11px 22px;border-top:1px solid var(--line);
+  margin-top:6px;font-size:10.5px;color:var(--dim);align-items:baseline;
+}
+.footstats b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;margin-left:6px}
+.credit{margin-left:auto;font-size:9.5px;color:var(--faint);letter-spacing:.04em;text-align:right}
+.hintbar{padding:6px 22px 2px;font-size:10px;color:var(--faint);letter-spacing:.03em}
+.hintbar b{color:var(--dim);font-weight:500}
+
+@media (max-width:1120px){
+  .wrap{grid-template-columns:280px 1fr}
+  .col-r{grid-column:1 / -1;flex-direction:row;flex-wrap:wrap}
+  .col-r .panel{flex:1;min-width:300px}
+}
+@media (max-width:760px){
+  .wrap{grid-template-columns:1fr}
+  h1{font-size:24px}
+  .smp .big{font-size:44px}
+  .credit{margin-left:0;text-align:left}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>MERIT <em>ORDER</em></h1>
+    <div class="ba">CENTENNIAL POWER POOL · SINGLE-NODE RTM</div>
+    <div class="live"><i></i>LIVE</div>
+  </div>
+  <div class="hspacer"></div>
+  <div class="clock" id="clock">DAY 1 · 06:00</div>
+  <div class="speeds">
+    <button class="sbtn" data-spd="0" id="btnPause">⏸</button>
+    <button class="sbtn on" data-spd="1">1×</button>
+    <button class="sbtn" data-spd="4">4×</button>
+    <button class="sbtn" data-spd="16">16×</button>
+  </div>
+</header>
+
+<div class="hintbar" id="hint"><b>TRY:</b> click any thermal unit in the fleet panel to force it offline.</div>
+
+<div class="wrap">
+
+  <!-- ============ LEFT ============ -->
+  <div class="col-l">
+
+    <div class="panel smp">
+      <div class="scarcity-tag" id="scarTag">SCARCITY PRICING</div>
+      <div class="lbl">SYSTEM MARGINAL PRICE</div>
+      <div class="big" id="price">$0.00</div>
+      <div class="unit">USD / MWh · 5-MIN SETTLEMENT</div>
+      <div class="marg">on the margin: <b id="margUnit">—</b></div>
+    </div>
+
+    <div class="panel">
+      <div class="chips">
+        <div class="chip"><div class="k">LOAD</div><div class="v" id="chipLoad">— <small>MW</small></div></div>
+        <div class="chip"><div class="k">RESERVE MARGIN</div><div class="v" id="chipRes">— <small>%</small></div></div>
+        <div class="chip"><div class="k">CARBON-FREE</div><div class="v" id="chipCF">— <small>%</small></div></div>
+        <div class="chip"><div class="k">CO₂ TODAY</div><div class="v" id="chipCO2">— <small>t</small></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ptitle">GRID EVENTS <span class="r">inject stress</span></div>
+      <div class="btns">
+        <button class="ebtn" id="evHeat">HEAT DOME<span class="sub">load +≈850 MW</span></button>
+        <button class="ebtn" id="evLull">WIND LULL<span class="sub">fleet CF → 6%</span></button>
+        <button class="ebtn" id="evCloud">CLOUD FRONT<span class="sub">solar −70%</span></button>
+        <button class="ebtn" id="evDerate">TIE-LINE DERATE<span class="sub">imports 420→120</span></button>
+        <button class="ebtn trip" id="evTrip" style="grid-column:1/-1">N−1 CONTINGENCY<span class="sub">trip largest online unit</span></button>
+      </div>
+    </div>
+
+    <div class="panel sliderbox">
+      <div class="row"><span>CARBON PRICE</span><b id="carbonVal">$0 /t</b></div>
+      <input type="range" id="carbon" min="0" max="100" value="0" step="1">
+      <div class="crossover" id="crossover">coal clears below gas — raise past ≈$12/t to flip the stack</div>
+    </div>
+
+    <div class="panel">
+      <div class="ptitle">BUILD / RETIRE <span class="r">reshape the fleet</span></div>
+      <div class="btns">
+        <button class="ebtn" id="bSolar">+200 MW SOLAR<span class="sub" id="bSolarSub">3 left</span></button>
+        <button class="ebtn" id="bWind">+150 MW WIND<span class="sub" id="bWindSub">3 left</span></button>
+        <button class="ebtn" id="bBatt">+100 MW BATTERY<span class="sub" id="bBattSub">+400 MWh · 3 left</span></button>
+        <button class="ebtn" id="bCoal">RETIRE COMANCHE<span class="sub">−660 MW coal</span></button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ptitle">OPERATOR LOG <span class="r">newest first</span></div>
+      <div class="log" id="log"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ CENTER ============ -->
+  <div class="col-c">
+
+    <div class="panel chart">
+      <div class="ptitle">BID STACK — LIVE SUPPLY CURVE <span class="r">demand line clears the marginal offer</span></div>
+      <div class="cbox"><canvas id="cvStack"></canvas></div>
+    </div>
+
+    <div class="panel chart">
+      <div class="ptitle">CLEARING PRICE — TRAILING 24 H <span class="r">$/MWh</span></div>
+      <div class="cbox"><canvas id="cvPrice"></canvas></div>
+    </div>
+
+    <div class="panel chart">
+      <div class="ptitle">GENERATION MIX — TRAILING 24 H <span class="r">MW by fuel · white line = load</span></div>
+      <div class="cbox"><canvas id="cvMix"></canvas></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ RIGHT ============ -->
+  <div class="col-r">
+    <div class="panel">
+      <div class="ptitle">DISPATCH FLEET <span class="r">click a unit to trip / restore</span></div>
+      <div class="fleet" id="fleet"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footstats">
+  <span>DAY AVG <b id="statAvg">—</b></span>
+  <span>DAY PEAK <b id="statPeak">—</b></span>
+  <span>ENERGY SERVED <b id="statServed">—</b></span>
+  <span>LOAD SHED <b id="statShed">0 MWh</b></span>
+  <span>CURTAILED <b id="statCurt">0 MWh</b></span>
+  <div class="credit">fictional fleet · uniform-price auction · ramp-feasible offers · scarcity adder<br>
+  built end-to-end in one pass by Claude Fable 5 — market engine, charts &amp; design hand-rolled, zero libraries</div>
+</div>
+
+<script>
+'use strict';
+/* ==============================================================
+   MERIT ORDER — single-node real-time market engine
+   ============================================================== */
+
+const FUEL = {
+  nuclear:{c:'#b892ff',label:'NUCLEAR'},
+  coal:   {c:'#c97a54',label:'COAL'},
+  hydro:  {c:'#4fb8ff',label:'HYDRO'},
+  gas:    {c:'#ffb454',label:'GAS CC'},
+  peaker: {c:'#ff8a3d',label:'PEAKER'},
+  import: {c:'#8fa3b0',label:'IMPORTS'},
+  wind:   {c:'#54e6a4',label:'WIND'},
+  solar:  {c:'#ffd94a',label:'SOLAR'},
+  battery:{c:'#ff6ad5',label:'BATTERY'},
+};
+const MIX_ORDER = ['nuclear','coal','hydro','gas','peaker','import','wind','solar','battery'];
+const PRICE_CAP = 2000, PRICE_FLOOR = -25, LOOK = 12; // ramp lookahead, sim-min
+
+function mkUnit(id,name,fuel,cap,mcFn,ramp,opts={}){
+  return { id,name,fuel,cap,mcFn,ramp,
+    min: opts.min ? opts.min*cap : 0,
+    out: 0, target: 0,
+    status:'ON',          // ON | OUT | STARTING
+    outMin: 0,            // sim-min remaining offline
+    retired:false, manual:false,
+    co2: opts.co2 || 0 };
+}
+
+const S = {
+  t: 0, day: 1, speed: 1, lastReal: null, acc: 0,
+  carbon: 0,
+  units: [
+    mkUnit('nuc' ,'Granite Peak Nuclear','nuclear',1150,c=>2,          8, {min:.9}),
+    mkUnit('coal','Comanche Station'    ,'coal'   , 660,c=>19+0.95*c,  7, {co2:.95}),
+    mkUnit('hyd' ,'Cabin Creek Hydro'   ,'hydro'  , 320,c=>7,         80),
+    mkUnit('cc1' ,'Fountain CC-1'       ,'gas'    , 480,c=>26+0.38*c, 12, {co2:.38}),
+    mkUnit('cc2' ,'Fountain CC-2'       ,'gas'    , 480,c=>30+0.38*c, 12, {co2:.38}),
+    mkUnit('pk1' ,'Blue Spruce CT'      ,'peaker' , 140,c=>62+0.55*c, 45, {co2:.55}),
+    mkUnit('pk2' ,'Arapahoe CT'         ,'peaker' , 140,c=>78+0.55*c, 45, {co2:.55}),
+    mkUnit('pk3' ,'Valmont CT'          ,'peaker' , 130,c=>94+0.55*c, 45, {co2:.55}),
+    mkUnit('tie' ,'Western Tie Imports' ,'import' , 420,c=>46,        60, {co2:.30}),
+  ],
+  capWind: 850, capSolar: 1000,
+  windOut: 0, solarOut: 0, curtail: 0,
+  bat: { pow:200, cap:800, soc:400, mode:'idle', p:0 },  // p>0 discharge, p<0 charge
+  env: { tempA:0, cloud:1, cloudT:1, windCF:.34, windT:.34, loadN:0 },
+  ev:  { heat:0, lull:0, cloud:0, derate:0 },
+  price: 30, marginal:'—', reserve:.3, scarcity:false, shedNow:0,
+  lastStack: [], lastNet: 0,
+  hist: [],                       // {t, price, load, mix:{fuel:MW}}
+  stats:{ pSum:0,pN:0,peak:-1e9,co2:0,served:0,shed:0,curt:0 },
+  builds:{ solar:3, wind:3, batt:3 },
+  logDirty:true, logs:[],
+  throttle:{},                    // event-log rate limiting
+};
+
+/* ---------- helpers ---------- */
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const R=Math.random;
+function hh(t){const m=((t%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(Math.floor(m%60)).padStart(2,'0');}
+function gauss(h,m,s){let d=Math.abs(h-m); d=Math.min(d,24-d); return Math.exp(-(d*d)/(2*s*s));}
+function fmtMW(v){return Math.round(v).toLocaleString('en-US');}
+function fmt$(v){
+  if(v<=-10) return '−$'+Math.abs(v).toFixed(0);
+  if(v<0)    return '−$'+Math.abs(v).toFixed(2);
+  if(v>=1000)return '$'+Math.round(v).toLocaleString('en-US');
+  return '$'+v.toFixed(2);
+}
+function log(msg,cls='',throttleKey=null,gapMin=25){
+  if(throttleKey){
+    const last=S.throttle[throttleKey];
+    const now=S.day*1440+S.t;
+    if(last!=null && now-last<gapMin) return;
+    S.throttle[throttleKey]=now;
+  }
+  S.logs.unshift({t:hh(S.t),cls,msg});
+  if(S.logs.length>48)S.logs.pop();
+  S.logDirty=true;
+}
+
+/* ---------- environment ---------- */
+function stepEnv(dt){
+  const e=S.env;
+  // temperature anomaly (heat dome)
+  const tT = S.ev.heat>0 ? 12 : 0;
+  e.tempA += clamp(tT-e.tempA, -dt*12/70, dt*12/70);
+  // wind: OU process toward regime mean
+  const wMean = S.ev.lull>0 ? .06 : .34;
+  e.windT += (wMean-e.windT)*0.012*dt + (R()-.5)*.016*Math.sqrt(dt);
+  e.windT = clamp(e.windT, .02, .85);
+  e.windCF += clamp(e.windT-e.windCF, -.02*dt, .02*dt);
+  // clouds
+  const cT = S.ev.cloud>0 ? .28 : 1;
+  e.cloudT += (cT-e.cloudT)*.02*dt + (R()-.5)*.01*Math.sqrt(dt);
+  e.cloudT = clamp(e.cloudT,.15,1.05);
+  e.cloud += clamp(e.cloudT-e.cloud, -.03*dt, .03*dt);
+  // load noise (OU)
+  e.loadN += -e.loadN*.02*dt + (R()-.5)*9*Math.sqrt(dt);
+  e.loadN = clamp(e.loadN,-70,70);
+  // tie-line derate
+  const tie=S.units.find(u=>u.id==='tie');
+  tie.cap = S.ev.derate>0 ? 120 : 420;
+  // event clocks
+  for(const k of ['heat','lull','cloud','derate']) if(S.ev[k]>0){
+    S.ev[k]-=dt;
+    if(S.ev[k]<=0){ S.ev[k]=0;
+      const names={heat:'Heat dome breaking — temperatures falling',lull:'Wind resuming across the fleet',
+                   cloud:'Cloud front clearing — solar recovering',derate:'Tie-line returned to full 420 MW rating'};
+      log(names[k],'good');
+    }
+  }
+}
+function loadAt(t){
+  const h=(t%1440)/60, e=S.env;
+  let L = 2520
+    + 420*gauss(h, 8.4,2.0)
+    + 360*gauss(h,13.8,3.0)
+    + 1330*gauss(h,19.1,2.3)
+    - 330*gauss(h, 3.8,2.4)
+    + e.tempA*(52 + 22*gauss(h,16.5,4.0))
+    + e.loadN;
+  return Math.max(1200,L);
+}
+function solarAvail(t){
+  const h=(t%1440)/60;
+  if(h<6.2||h>19.4) return 0;
+  const s=Math.pow(Math.max(0,Math.sin(Math.PI*(h-6.2)/13.2)),1.35);
+  return S.capSolar*s*clamp(S.env.cloud,0,1);
+}
+
+/* ---------- battery (hysteresis, decides on last interval price) ---------- */
+function stepBat(dt){
+  const b=S.bat, P=S.price, r=S.reserve;
+  if(b.mode!=='dis' && (P>=70||r<.08) && b.soc>2) b.mode='dis';
+  else if(b.mode!=='chg' && P<=22 && b.soc<b.cap*.985 && r>.12) b.mode='chg';
+  if(b.mode==='dis' && ((P<=52&&r>.11)||b.soc<=0)) b.mode='idle';
+  if(b.mode==='chg' && (P>=32||b.soc>=b.cap||r<.09)) b.mode='idle';
+  const tgt = b.mode==='dis'? b.pow : b.mode==='chg'? -b.pow : 0;
+  b.p += clamp(tgt-b.p, -b.pow*dt/2.5, b.pow*dt/2.5);
+  if(b.p>0) b.p=Math.min(b.p, b.soc*60/dt);                    // can't discharge more than SOC
+  if(b.p<0) b.p=Math.max(b.p, -(b.cap-b.soc)*60/dt/0.92);
+  b.soc += (b.p<0 ? -b.p*0.92 : -b.p)*dt/60;
+  b.soc = clamp(b.soc,0,b.cap);
+}
+
+/* ---------- market clearing (uniform price, ramp-feasible offers) ---------- */
+function clearMarket(dt){
+  const L = loadAt(S.t);
+  stepBat(dt);
+  const net = Math.max(0, L + Math.max(0,-S.bat.p) - Math.max(0,S.bat.p));
+
+  const windAv  = S.env.windCF*S.capWind;
+  const solAv   = solarAvail(S.t);
+  const nuc = S.units[0];
+  const nucMin = (nuc.status==='ON'&&!nuc.retired) ? nuc.min : 0;
+
+  // build offer stack (renewables bid negative — PTC behavior)
+  const offers=[];
+  offers.push({key:'wind' ,fuel:'wind' ,mc:-4,cap:windAv,q:0,name:'Prairie Wind (PTC)'});
+  offers.push({key:'solar',fuel:'solar',mc:-2,cap:solAv ,q:0,name:'Sun Ridge Solar'});
+  for(const u of S.units){
+    if(u.retired||u.status!=='ON') continue;
+    const feas = Math.min(u.cap, u.out + u.ramp*LOOK);
+    const cap  = u===nuc ? Math.max(0,feas-nucMin) : feas;   // nuke min pre-committed
+    offers.push({key:u.id,fuel:u.fuel,mc:u.mcFn(S.carbon),cap,q:0,name:u.name,u});
+  }
+  offers.sort((a,b)=>a.mc-b.mc);
+
+  let need = net - nucMin;
+  let price = PRICE_FLOOR, marginal='min-gen (nuclear must-run)';
+  if(need<0){ need=0; }                                       // min-gen: everything else at 0
+  for(const o of offers){
+    if(need<=0){o.q=0;continue;}
+    o.q = Math.min(o.cap, need);
+    need -= o.q;
+    if(o.q>0){ price=o.mc; marginal=o.name; }
+  }
+  const shed = Math.max(0,need);
+
+  // renewables curtailed = available but not cleared while price at their bid
+  const wOff=offers[0].fuel==='wind'?offers[0]:offers.find(o=>o.key==='wind');
+  const sOff=offers.find(o=>o.key==='solar');
+  const curtailed = Math.max(0,(wOff.cap-wOff.q))+Math.max(0,(sOff.cap-sOff.q));
+  const oversupply = price<0;
+
+  // scarcity adder on thin reserves
+  let avail = nucMin; for(const o of offers) avail+=o.cap;
+  if(S.bat.soc>1) avail += Math.max(0,S.bat.pow - Math.max(0,S.bat.p));
+  const reserve = (avail-net)/Math.max(net,1);
+  let scarcity=false;
+  if(shed>0){ price=PRICE_CAP; scarcity=true; marginal='FIRM LOAD SHED'; }
+  else if(reserve<.10){
+    const x=(.10-reserve)/.10;
+    price=Math.min(PRICE_CAP, price + 1900*x*x);
+    scarcity=true;
+  }
+
+  // commit targets
+  for(const o of offers){
+    if(o.u) o.u.target = (o.u===nuc? nucMin:0) + o.q;
+    else if(o.key==='wind')  S.windOut  = o.q;
+    else if(o.key==='solar') S.solarOut = o.q;
+  }
+  if(nuc.status==='ON'&&!nuc.retired&&nuc.target<nucMin) nuc.target=nucMin;
+
+  // events into the log
+  if(shed>0) log(`EEA-3 — firm load shed ${fmtMW(shed)} MW. Price at cap ${fmt$(PRICE_CAP)}.`,'alarm','shed',20);
+  else if(scarcity && !S.scarcity) log(`Reserves ${(reserve*100).toFixed(1)}% — scarcity pricing in effect.`,'alarm');
+  else if(!scarcity && S.scarcity) log('Reserves restored above 10% — scarcity pricing released.','good');
+  if(oversupply && curtailed>40) log(`Oversupply — curtailing ${fmtMW(curtailed)} MW of renewables, price ${fmt$(price)}.`,'warn','curt',40);
+
+  S.price=price; S.marginal=marginal; S.reserve=reserve; S.scarcity=scarcity; S.shedNow=shed;
+  S.curtail = oversupply?curtailed:0;
+  S.lastNet=net;
+  S.lastStack=[{fuel:'nuclear',mc:nuc.mcFn(0),cap:nucMin,q:nucMin,name:nuc.name+' (must-run)'},...offers]
+    .sort((a,b)=>a.mc-b.mc);
+
+  // stats
+  S.stats.pSum+=price*dt; S.stats.pN+=dt;
+  if(price>S.stats.peak)S.stats.peak=price;
+  S.stats.served+= (net-shed)*dt/60;
+  S.stats.shed  += shed*dt/60;
+  S.stats.curt  += S.curtail*dt/60;
+}
+
+/* ---------- physical dispatch (ramps, outages) ---------- */
+function stepUnits(dt){
+  for(const u of S.units){
+    if(u.retired){u.out=0;continue;}
+    if(u.status==='OUT'){
+      u.out=0; u.outMin-=dt;
+      if(u.outMin<=0 && !u.manual){ u.status='STARTING'; log(`${u.name} synchronized — ramping back.`,'good'); }
+      continue;
+    }
+    if(u.status==='STARTING'){ u.status='ON'; }
+    u.out += clamp(u.target-u.out, -u.ramp*dt, u.ramp*dt);
+    u.out = clamp(u.out,0,u.cap);
+    S.stats.co2 += u.out*u.co2*dt/60;
+  }
+  // rare forced outages (~0.4/day across thermal fleet)
+  for(const u of S.units){
+    if(u.retired||u.status!=='ON'||u.fuel==='hydro'||u.id==='tie'||u.id==='nuc')continue;
+    if(!S.noForcedOutages && R()<dt/26000){ tripUnit(u,false); }
+  }
+}
+function tripUnit(u,manual){
+  if(u.retired||u.status==='OUT')return;
+  u.status='OUT'; u.manual=manual; u.out=0; u.target=0;
+  u.outMin = manual? 1e9 : 150+R()*210;
+  log(`${u.name} ${manual?'forced outage (operator action)':'FORCED OUTAGE'} — ${fmtMW(u.cap)} MW offline.`, 'alarm');
+}
+function restoreUnit(u){
+  if(u.status!=='OUT')return;
+  u.status='ON'; u.manual=false; u.outMin=0;
+  log(`${u.name} released for dispatch — ramping from zero.`,'good');
+}
+
+/* ---------- history sampling ---------- */
+let sampleAcc=0;
+function sample(dt){
+  sampleAcc+=dt;
+  if(sampleAcc<5)return;
+  sampleAcc=0;
+  const mix={};
+  for(const f of MIX_ORDER)mix[f]=0;
+  for(const u of S.units) if(!u.retired) mix[u.fuel]+=u.out;
+  mix.wind=S.windOut; mix.solar=S.solarOut;
+  mix.battery=Math.max(0,S.bat.p);
+  S.hist.push({t:S.day*1440+S.t, price:S.price, load:loadAt(S.t)+Math.max(0,-S.bat.p), mix});
+  if(S.hist.length>289)S.hist.shift();
+}
+
+/* ---------- one engine tick = 1 sim-minute ---------- */
+function tick(dt){
+  S.t+=dt;
+  if(S.t>=1440){
+    S.t-=1440; S.day++;
+    log(`Day ${S.day} — avg ${fmt$(S.stats.pSum/Math.max(1,S.stats.pN))}, peak ${fmt$(S.stats.peak)}. Counters reset.`,'info');
+    S.stats={pSum:0,pN:0,peak:-1e9,co2:0,served:0,shed:0,curt:0};
+  }
+  stepEnv(dt);
+  clearMarket(dt);
+  stepUnits(dt);
+  sample(dt);
+}
+/* ==============================================================
+   RENDERING — hand-rolled canvas charts + DOM
+   ============================================================== */
+const $=id=>document.getElementById(id);
+const el={clock:$('clock'),price:$('price'),marg:$('margUnit'),scar:$('scarTag'),
+  load:$('chipLoad'),res:$('chipRes'),cf:$('chipCF'),co2:$('chipCO2'),
+  log:$('log'),fleet:$('fleet'),legend:$('legend'),hint:$('hint'),
+  carbon:$('carbon'),carbonVal:$('carbonVal'),cross:$('crossover'),
+  statAvg:$('statAvg'),statPeak:$('statPeak'),statServed:$('statServed'),
+  statShed:$('statShed'),statCurt:$('statCurt')};
+
+function setupCanvas(id){
+  const cv=$(id),ctx=cv.getContext('2d');
+  const o={cv,ctx,w:0,h:0};
+  const fit=()=>{
+    const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;
+    o.w=r.width;o.h=r.height;
+    cv.width=Math.max(2,r.width*d);cv.height=Math.max(2,r.height*d);
+    ctx.setTransform(d,0,0,d,0,0);
+  };
+  new ResizeObserver(fit).observe(cv);fit();
+  return o;
+}
+const cStack=setupCanvas('cvStack'),cPrice=setupCanvas('cvPrice'),cMix=setupCanvas('cvMix');
+const AXIS='#3a4c59',GRIDC='rgba(95,224,255,.06)';
+function axisText(ctx){ctx.fillStyle=AXIS;ctx.font='9.5px "IBM Plex Mono",monospace';}
+
+/* ---------- 1 · bid stack ---------- */
+let yMaxStack=120;
+function drawStack(){
+  const {ctx,w,h}=cStack; if(w<10)return;
+  ctx.clearRect(0,0,w,h);
+  const padL=44,padR=14,padT=14,padB=22,W=w-padL-padR,H=h-padT-padB;
+  const stack=S.lastStack; if(!stack.length)return;
+  const totCap=stack.reduce((a,o)=>a+o.cap,0)||1;
+  const wantMax=Math.max(115,S.price*1.28,stack[stack.length-1].mc*1.15);
+  yMaxStack+=(Math.min(wantMax,PRICE_CAP*1.05)-yMaxStack)*.08;
+  const y0=-30,y1=yMaxStack;
+  const X=mw=>padL+W*mw/totCap, Y=p=>padT+H*(1-(clamp(p,y0,y1)-y0)/(y1-y0));
+
+  // grid + y labels
+  axisText(ctx);ctx.textAlign='right';
+  const step=yMaxStack>900?500:yMaxStack>350?100:yMaxStack>160?50:25;
+  for(let p=0;p<=y1;p+=step){
+    ctx.strokeStyle=GRIDC;ctx.beginPath();ctx.moveTo(padL,Y(p));ctx.lineTo(w-padR,Y(p));ctx.stroke();
+    ctx.fillText(p,padL-6,Y(p)+3);
+  }
+  ctx.strokeStyle='rgba(184,146,255,.25)';ctx.setLineDash([2,3]);
+  ctx.beginPath();ctx.moveTo(padL,Y(0));ctx.lineTo(w-padR,Y(0));ctx.stroke();ctx.setLineDash([]);
+
+  // offers as filled steps; find marginal
+  let cum=0,margIdx=-1;
+  for(let i=0;i<stack.length;i++){const o=stack[i];
+    if(margIdx<0&&cum+o.cap>=S.lastNet-0.5&&o.q>0)margIdx=i;
+    cum+=o.cap;}
+  cum=0;
+  for(let i=0;i<stack.length;i++){
+    const o=stack[i];if(o.cap<=0){continue;}
+    const x0=X(cum),x1=X(cum+o.cap),yTop=Y(o.mc);
+    const col=FUEL[o.fuel].c;
+    ctx.globalAlpha=o.q>0?.5:.16;
+    ctx.fillStyle=col;ctx.fillRect(x0,yTop,x1-x0,Y(y0<0?0:y0)-yTop>=0?Y(0)-yTop:0);
+    if(Y(0)-yTop<0){ctx.fillRect(x0,Y(0),x1-x0,yTop-Y(0));}
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=col;ctx.lineWidth=i===margIdx?2.5:1.4;
+    if(i===margIdx){ctx.shadowColor=col;ctx.shadowBlur=10;}
+    ctx.beginPath();ctx.moveTo(x0,yTop);ctx.lineTo(x1,yTop);ctx.stroke();
+    ctx.shadowBlur=0;ctx.lineWidth=1;
+    cum+=o.cap;
+  }
+  // demand line
+  const dx=X(S.lastNet);
+  ctx.strokeStyle='#e8f3f9';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(dx,padT-4);ctx.lineTo(dx,padT+H);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#e8f3f9';ctx.font='10px "IBM Plex Mono",monospace';
+  ctx.textAlign=dx>w-130?'right':'left';
+  ctx.fillText('LOAD '+fmtMW(S.lastNet)+' MW',dx+(dx>w-130?-6:6),padT+8);
+  // clearing price line + node
+  const py=Y(S.price);
+  ctx.strokeStyle=S.scarcity?'#ff5d68':'#5fe0ff';ctx.setLineDash([2,4]);
+  ctx.beginPath();ctx.moveTo(padL,py);ctx.lineTo(dx,py);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=S.scarcity?'#ff5d68':'#5fe0ff';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=12;
+  ctx.beginPath();ctx.arc(dx,py,3.6,0,7);ctx.fill();ctx.shadowBlur=0;
+  // x labels
+  axisText(ctx);ctx.textAlign='center';
+  for(let mw=0;mw<=totCap;mw+=1000)ctx.fillText(fmtMW(mw),X(mw),h-8);
+  ctx.textAlign='right';ctx.fillText('MW',w-padR,h-8);
+}
+
+/* ---------- shared time axis ---------- */
+function timeAxis(ctx,padL,padR,w,h,padT,H,tA,tB){
+  axisText(ctx);ctx.textAlign='center';
+  const first=Math.ceil(tA/240)*240;
+  for(let t=first;t<=tB;t+=240){
+    const x=padL+(w-padL-padR)*(t-tA)/(tB-tA);
+    ctx.strokeStyle=GRIDC;ctx.beginPath();ctx.moveTo(x,padT);ctx.lineTo(x,padT+H);ctx.stroke();
+    ctx.fillText(hh(t),x,h-6);
+  }
+}
+
+/* ---------- 2 · price strip ---------- */
+let yMaxPrice=120;
+function drawPrice(){
+  const {ctx,w,h}=cPrice;if(w<10)return;
+  ctx.clearRect(0,0,w,h);
+  const H0=S.hist;if(H0.length<2)return;
+  const padL=44,padR=14,padT=10,padB=18,W=w-padL-padR,H=h-padT-padB;
+  const tB=H0[H0.length-1].t,tA=tB-1440;
+  let hi=60;for(const s of H0)if(s.price>hi)hi=s.price;
+  yMaxPrice+=(Math.max(90,hi*1.2)-yMaxPrice)*.06;
+  const y0=-28,y1=yMaxPrice;
+  const X=t=>padL+W*(t-tA)/1440,Y=p=>padT+H*(1-(clamp(p,y0,y1)-y0)/(y1-y0));
+  timeAxis(ctx,padL,padR,w,h,padT,H,tA,tB);
+  axisText(ctx);ctx.textAlign='right';
+  const step=yMaxPrice>900?500:yMaxPrice>350?150:50;
+  for(let p=0;p<=y1;p+=step){ctx.strokeStyle=GRIDC;ctx.beginPath();ctx.moveTo(padL,Y(p));ctx.lineTo(w-padR,Y(p));ctx.stroke();ctx.fillText(p,padL-6,Y(p)+3);}
+  ctx.strokeStyle='rgba(184,146,255,.3)';ctx.setLineDash([2,3]);
+  ctx.beginPath();ctx.moveTo(padL,Y(0));ctx.lineTo(w-padR,Y(0));ctx.stroke();ctx.setLineDash([]);
+  // gradient fill
+  const g=ctx.createLinearGradient(0,padT,0,padT+H);
+  g.addColorStop(0,'rgba(95,224,255,.28)');g.addColorStop(1,'rgba(95,224,255,0)');
+  ctx.beginPath();
+  let started=false;
+  for(const s of H0){if(s.t<tA)continue;const x=X(s.t),y=Y(s.price);
+    if(!started){ctx.moveTo(x,Y(0));ctx.lineTo(x,y);started=true;}else ctx.lineTo(x,y);}
+  const lastX=X(tB);ctx.lineTo(lastX,Y(0));ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  // line, colored by regime
+  ctx.lineWidth=1.6;ctx.lineJoin='round';
+  let px=null,py=null;
+  for(const s of H0){if(s.t<tA)continue;
+    const x=X(s.t),y=Y(s.price);
+    if(px!=null){ctx.strokeStyle=s.price>=200?'#ff5d68':s.price>=60?'#ffb454':s.price<0?'#b892ff':'#5fe0ff';
+      ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);ctx.stroke();}
+    px=x;py=y;}
+  ctx.lineWidth=1;
+}
+
+/* ---------- 3 · generation mix ---------- */
+let yMaxMix=4200;
+function drawMix(){
+  const {ctx,w,h}=cMix;if(w<10)return;
+  ctx.clearRect(0,0,w,h);
+  const H0=S.hist;if(H0.length<2)return;
+  const padL=44,padR=14,padT=10,padB=18,W=w-padL-padR,H=h-padT-padB;
+  const tB=H0[H0.length-1].t,tA=tB-1440;
+  let hi=3000;for(const s of H0){let tot=0;for(const f of MIX_ORDER)tot+=s.mix[f];if(tot>hi)hi=tot;if(s.load>hi)hi=s.load;}
+  yMaxMix+=(hi*1.12-yMaxMix)*.06;
+  const X=t=>padL+W*(t-tA)/1440,Y=v=>padT+H*(1-clamp(v,0,yMaxMix)/yMaxMix);
+  timeAxis(ctx,padL,padR,w,h,padT,H,tA,tB);
+  axisText(ctx);ctx.textAlign='right';
+  const step=yMaxMix>5200?2000:1000;
+  for(let v=0;v<=yMaxMix;v+=step){ctx.strokeStyle=GRIDC;ctx.beginPath();ctx.moveTo(padL,Y(v));ctx.lineTo(w-padR,Y(v));ctx.stroke();ctx.fillText(fmtMW(v),padL-6,Y(v)+3);}
+  const pts=H0.filter(s=>s.t>=tA);
+  // stacked areas
+  let base=pts.map(()=>0);
+  for(const f of MIX_ORDER){
+    ctx.beginPath();
+    pts.forEach((s,i)=>{const x=X(s.t),y=Y(base[i]+s.mix[f]);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    for(let i=pts.length-1;i>=0;i--)ctx.lineTo(X(pts[i].t),Y(base[i]));
+    ctx.closePath();
+    ctx.fillStyle=FUEL[f].c+'99';ctx.fill();
+    ctx.strokeStyle=FUEL[f].c;ctx.globalAlpha=.7;ctx.stroke();ctx.globalAlpha=1;
+    base=base.map((b,i)=>b+pts[i].mix[f]);
+  }
+  // load line
+  ctx.strokeStyle='#eef6fb';ctx.lineWidth=1.4;ctx.setLineDash([5,3]);
+  ctx.beginPath();pts.forEach((s,i)=>{const x=X(s.t),y=Y(s.load);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=1;
+}
+
+/* ---------- fleet panel ---------- */
+const rows=[];
+function buildFleet(){
+  el.fleet.innerHTML='';rows.length=0;
+  const add=(cfg)=>{
+    const d=document.createElement('div');d.className='urow'+(cfg.click?'':' noclick');
+    d.innerHTML=`<div class="top"><span class="dot" style="background:${cfg.col}"></span>
+      <span class="nm">${cfg.name}</span><span class="mc"></span></div>
+      <div class="barbox"><div class="bar" style="background:${cfg.col}"></div></div>
+      <div class="meta"><span class="st"></span><span class="mw"></span></div>
+      <div class="tipline">${cfg.tip||''}</div>`;
+    el.fleet.appendChild(d);
+    const r={d,cfg,bar:d.querySelector('.bar'),mc:d.querySelector('.mc'),
+             st:d.querySelector('.st'),mw:d.querySelector('.mw')};
+    if(cfg.click)d.addEventListener('click',cfg.click);
+    rows.push(r);return r;
+  };
+  for(const u of S.units){
+    add({name:u.name,col:FUEL[u.fuel].c,unit:u,tip:'click to trip / restore',
+      click:()=>{ if(u.retired)return; u.status==='OUT'?restoreUnit(u):tripUnit(u,true); }});
+  }
+  add({name:'Prairie Wind',col:FUEL.wind.c,kind:'wind',tip:'variable — bids −$4 (PTC)'});
+  add({name:'Sun Ridge Solar',col:FUEL.solar.c,kind:'solar',tip:'variable — bids −$2'});
+  add({name:'Ionia Battery',col:FUEL.battery.c,kind:'bat',tip:'arbitrage: charges <$22 · discharges >$70 or thin reserves'});
+}
+function updFleet(){
+  for(const r of rows){
+    const {cfg}=r;
+    if(cfg.unit){const u=cfg.unit;
+      r.d.classList.toggle('out',u.status==='OUT');
+      r.d.classList.toggle('retired',u.retired);
+      r.mc.textContent='$'+u.mcFn(S.carbon).toFixed(1);
+      r.bar.style.width=(u.retired?0:u.out/u.cap*100)+'%';
+      r.st.textContent=u.retired?'RETIRED':u.status==='OUT'?(u.manual?'TRIPPED':'FORCED OUT'):u.out<u.target-2?'RAMP ↑':u.out>u.target+2?'RAMP ↓':'ON';
+      r.mw.textContent=`${fmtMW(u.out)} / ${fmtMW(u.cap)} MW`;
+    }else if(cfg.kind==='wind'){
+      const av=S.env.windCF*S.capWind;
+      r.mc.textContent='−$4.0';r.bar.style.width=(S.windOut/S.capWind*100)+'%';
+      r.st.textContent=S.windOut<av-25?'CURTAILED':'ON';
+      r.st.style.color=S.windOut<av-25?'#ffb454':'';
+      r.mw.textContent=`${fmtMW(S.windOut)} / ${fmtMW(av)} av · ${fmtMW(S.capWind)} np`;
+    }else if(cfg.kind==='solar'){
+      const av=solarAvail(S.t);
+      r.mc.textContent='−$2.0';r.bar.style.width=(S.solarOut/S.capSolar*100)+'%';
+      r.st.textContent=av<5?'NIGHT':S.solarOut<av-25?'CURTAILED':'ON';
+      r.st.style.color=S.solarOut<av-25&&av>=5?'#ffb454':'';
+      r.mw.textContent=`${fmtMW(S.solarOut)} / ${fmtMW(av)} av · ${fmtMW(S.capSolar)} np`;
+    }else{
+      const b=S.bat;
+      r.mc.textContent=(b.soc/b.cap*100).toFixed(0)+'% SOC';
+      r.bar.style.width=(b.soc/b.cap*100)+'%';
+      r.st.textContent=b.mode==='dis'?'DISCHARGING':b.mode==='chg'?'CHARGING':'STANDBY';
+      r.st.style.color=b.mode==='dis'?'#ff6ad5':b.mode==='chg'?'#54e6a4':'';
+      r.mw.textContent=`${b.p>=0?'+':'−'}${fmtMW(Math.abs(b.p))} MW · ${fmtMW(b.pow)}/${fmtMW(b.cap)}`;
+    }
+  }
+}
+
+/* ---------- DOM readout ---------- */
+function updDOM(){
+  el.clock.textContent=`DAY ${S.day} · ${hh(S.t)}`;
+  el.price.textContent=fmt$(S.price);
+  el.price.className='big'+(S.price<0?' neg':S.price>=200?' alarm':S.price>=60?' warn':'');
+  el.marg.textContent=S.marginal;
+  el.scar.classList.toggle('show',S.scarcity);
+  el.load.innerHTML=fmtMW(S.lastNet)+' <small>MW</small>';
+  el.res.innerHTML=(S.reserve*100).toFixed(1)+' <small>%</small>';
+  el.res.style.color=S.reserve<.10?'#ff5d68':S.reserve<.15?'#ffb454':'';
+  let cf=0,tot=0;
+  for(const u of S.units)if(!u.retired){tot+=u.out;if(u.co2===0)cf+=u.out;}
+  cf+=S.windOut+S.solarOut+Math.max(0,S.bat.p);tot+=S.windOut+S.solarOut+Math.max(0,S.bat.p);
+  el.cf.innerHTML=(tot>0?(cf/tot*100):0).toFixed(0)+' <small>%</small>';
+  el.co2.innerHTML=fmtMW(S.stats.co2)+' <small>t</small>';
+  el.statAvg.textContent=S.stats.pN>0?fmt$(S.stats.pSum/S.stats.pN)+'/MWh':'—';
+  el.statPeak.textContent=S.stats.peak>-1e8?fmt$(S.stats.peak):'—';
+  el.statServed.textContent=(S.stats.served/1000).toFixed(1)+' GWh';
+  el.statShed.textContent=fmtMW(S.stats.shed)+' MWh';
+  el.statCurt.textContent=fmtMW(S.stats.curt)+' MWh';
+  // events countdown
+  const evmap={evHeat:'heat',evLull:'lull',evCloud:'cloud',evDerate:'derate'};
+  for(const id in evmap){const b=$(id),k=evmap[id],on=S.ev[k]>0;
+    b.classList.toggle('active',on);
+    if(on)b.querySelector('.sub').textContent=hh(S.ev[k]).replace(/^0/,'')+' remaining';
+    else b.querySelector('.sub').textContent=b.dataset.sub;}
+  // carbon crossover
+  const coalMC=19+.95*S.carbon,ccMC=26+.38*S.carbon;
+  if(coalMC>ccMC){el.cross.textContent=`gas ($${ccMC.toFixed(1)}) now clears below coal ($${coalMC.toFixed(1)}) — merit order flipped`;el.cross.className='crossover hot';}
+  else{el.cross.textContent=`coal $${coalMC.toFixed(1)} vs gas $${ccMC.toFixed(1)} — flip point ≈ $12/t`;el.cross.className='crossover';}
+  if(S.logDirty){
+    el.log.innerHTML=S.logs.map(l=>`<div class="e ${l.cls}"><span class="t">${l.t}</span>${l.msg}</div>`).join('');
+    S.logDirty=false;
+  }
+  updFleet();
+}
+
+/* ---------- legend ---------- */
+el.legend.innerHTML=MIX_ORDER.map(f=>`<span class="li"><i style="background:${FUEL[f].c}"></i>${FUEL[f].label}</span>`).join('');
+
+/* ---------- controls ---------- */
+document.querySelectorAll('.sbtn').forEach(b=>b.addEventListener('click',()=>{
+  S.speed=+b.dataset.spd;
+  document.querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',x===b));
+}));
+let lastSpd=1;
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target.tagName!=='INPUT'){e.preventDefault();
+    if(S.speed>0){lastSpd=S.speed;S.speed=0;}else S.speed=lastSpd||1;
+    document.querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',+x.dataset.spd===S.speed));
+  }});
+function wireEvent(id,key,dur,msg){
+  const b=$(id);b.dataset.sub=b.querySelector('.sub').textContent;
+  b.addEventListener('click',()=>{
+    if(S.ev[key]>0){S.ev[key]=.5;return;}
+    S.ev[key]=dur;log(msg,'warn');
+  });
+}
+wireEvent('evHeat','heat',360,'WEATHER — heat dome building. Afternoon load forecast +≈850 MW.');
+wireEvent('evLull','lull',300,'WEATHER — high-pressure ridge. Wind fleet capacity factor collapsing toward 6%.');
+wireEvent('evCloud','cloud',180,'WEATHER — cloud front moving in. Solar output cut ~70%.');
+wireEvent('evDerate','derate',240,'TRANSMISSION — western tie derated 420 → 120 MW (line loading).');
+$('evTrip').addEventListener('click',()=>{
+  let big=null;
+  for(const u of S.units)if(!u.retired&&u.status==='ON'&&u.id!=='nuc'&&u.fuel!=='hydro'&&(!big||u.cap>big.cap))big=u;
+  if(big)tripUnit(big,true);else log('No eligible unit online to trip.','warn');
+});
+el.carbon.addEventListener('input',()=>{S.carbon=+el.carbon.value;el.carbonVal.textContent='$'+S.carbon+' /t';});
+$('bSolar').addEventListener('click',()=>{if(S.builds.solar<=0)return;S.builds.solar--;S.capSolar+=200;
+  $('bSolarSub').textContent=S.builds.solar+' left';if(!S.builds.solar)$('bSolar').disabled=true;
+  log(`INTERCONNECTION — 200 MW solar energized. Sun Ridge now ${fmtMW(S.capSolar)} MW nameplate.`,'info');});
+$('bWind').addEventListener('click',()=>{if(S.builds.wind<=0)return;S.builds.wind--;S.capWind+=150;
+  $('bWindSub').textContent=S.builds.wind+' left';if(!S.builds.wind)$('bWind').disabled=true;
+  log(`INTERCONNECTION — 150 MW wind energized. Prairie Wind now ${fmtMW(S.capWind)} MW nameplate.`,'info');});
+$('bBatt').addEventListener('click',()=>{if(S.builds.batt<=0)return;S.builds.batt--;S.bat.pow+=100;S.bat.cap+=400;
+  $('bBattSub').textContent='+400 MWh · '+S.builds.batt+' left';if(!S.builds.batt)$('bBatt').disabled=true;
+  log(`INTERCONNECTION — battery expanded to ${fmtMW(S.bat.pow)} MW / ${fmtMW(S.bat.cap)} MWh.`,'info');});
+$('bCoal').addEventListener('click',()=>{
+  const c=S.units.find(u=>u.id==='coal');
+  c.retired=!c.retired;
+  if(c.retired){c.out=0;c.target=0;c.status='ON';
+    log('RETIREMENT — Comanche Station removed from the supply stack (−660 MW firm).','warn');
+    $('bCoal').innerHTML='RESTORE COMANCHE<span class="sub">+660 MW coal</span>';}
+  else{log('Comanche Station returned to rate base — ramping from cold.','info');
+    $('bCoal').innerHTML='RETIRE COMANCHE<span class="sub">−660 MW coal</span>';}
+});
+
+/* ---------- hints ---------- */
+const HINTS=[
+  '<b>TRY:</b> click any thermal unit in the fleet panel to force it offline.',
+  '<b>TRY:</b> run 4× into the evening ramp, then hit N−1 CONTINGENCY around 18:30.',
+  '<b>TRY:</b> drag carbon past $12/t and watch Comanche slide down the merit order.',
+  '<b>TRY:</b> stack HEAT DOME + WIND LULL before sunset. Watch the reserve margin.',
+  '<b>TRY:</b> build all the solar, then look at midday prices tomorrow — that dip is the duck curve.',
+  '<b>WATCH:</b> the battery charges the solar trough and discharges the evening peak on its own.',
+  '<b>WATCH:</b> after a trip, peakers set price while slower units ramp — that lag is the spike.',
+];
+let hintI=0;setInterval(()=>{hintI=(hintI+1)%HINTS.length;el.hint.innerHTML=HINTS[hintI];},22000);
+
+/* ---------- boot ---------- */
+(function prewarm(){
+  const realLog=S.logs;S.logs=[];S.noForcedOutages=true;
+  for(let i=0;i<360;i++)tick(1);           // simulate 00:00 → 06:00
+  S.logs=realLog;S.logDirty=true;S.noForcedOutages=false;
+  for(const u of S.units)u.out=u.target;   // settle ramps
+  log('Market open — Centennial Power Pool on dispatch. All values fictional.','info');
+  log('Click any thermal unit to trip it. Space bar pauses.','info');
+})();
+
+let last=null,frame=0;
+function loop(ts){
+  if(last==null)last=ts;
+  const dtReal=Math.min(.12,(ts-last)/1000);last=ts;
+  S.acc+=dtReal*S.speed*10;                // 1× = 10 sim-min / real-sec
+  let n=0;while(S.acc>=1&&n<600){tick(1);S.acc-=1;n++;}
+  drawStack();drawPrice();drawMix();
+  if(frame++%5===0)updDOM();
+  requestAnimationFrame(loop);
+}
+buildFleet();
+updDOM();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
