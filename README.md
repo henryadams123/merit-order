@@ -1,4 +1,4 @@
-## Note from the Author
+- Note from the Author
 
 I wanted to see what Claudes new model Fabel 5 was capable of so i gave claude a project to see what it is capable of. The following is a discription of the project, why cloaude cose it, and how it created what it did. 
 
